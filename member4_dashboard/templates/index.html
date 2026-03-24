@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network IDS Dashboard</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #38bdf8;
+        }
+
+        #alerts li {
+            margin: 5px 0;
+            padding: 5px;
+            background: #1e293b;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🚀 Network IDS Dashboard</h1>
+
+<h3>🚨 Live Alerts</h3>
+<ul id="alerts"></ul>
+
+<h3>🌍 Attack Map</h3>
+<div id="map" style="height: 300px;"></div>
+
+<h3>📊 Protocol Analysis</h3>
+<canvas id="chart"></canvas>
+
+<h3>Total Alerts: <span id="count"></span></h3>
+
+<script>
+
+var map = L.map('map').setView([20, 78], 3);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+let chart = null; // store chart instance
+
+async function loadData() {
+    const res = await fetch("/alerts");
+    const data = await res.json();
+
+    // ✅ Total alerts
+    document.getElementById("count").innerText = data.length;
+
+    const list = document.getElementById("alerts");
+    list.innerHTML = "";
+
+    let counts = {};
+
+    // ✅ CLEAR OLD MARKERS
+    map.eachLayer(function(layer){
+        if(layer instanceof L.Marker){
+            map.removeLayer(layer);
+        }
+    });
+
+    data.slice(-10).forEach(alert => {
+
+        // Alerts
+        let li = document.createElement("li");
+        li.innerText = `🚨 ${alert.attack} | ${alert.ip} | ${alert.protocol}`;
+        list.appendChild(li);
+
+        // Count protocol
+        counts[alert.protocol] = (counts[alert.protocol] || 0) + 1;
+
+        // Map
+        if(alert.lat && alert.lon){
+            L.marker([alert.lat, alert.lon])
+             .addTo(map)
+             .bindPopup(alert.ip + " (" + alert.country + ")");
+        }
+    });
+
+    // ✅ DESTROY OLD CHART
+    if(chart){
+        chart.destroy();
+    }
+
+    // Chart
+    chart = new Chart(document.getElementById("chart"), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(counts),
+            datasets: [{
+                label: 'Protocol Count',
+                data: Object.values(counts)
+            }]
+        }
+    });
+}
+
+// Run every 3 sec
+setInterval(loadData, 3000);
+
+</script>
+
+</body>
+</html>

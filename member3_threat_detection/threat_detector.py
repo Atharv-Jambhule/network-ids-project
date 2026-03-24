@@ -2,21 +2,24 @@ import joblib
 import pandas as pd
 import time
 from collections import defaultdict
-from scapy.all import sniff, IP, TCP, UDP
+from scapy.all import sniff, IP, TCP, UDP, wrpcap
 
 # Load trained model
 model = joblib.load("models/anomaly_model.pkl")
 
 print("🚀 Real-time IDS started...")
 
-# 🔥 Alert control
+# Alert control
 last_alert_time = defaultdict(float)
 ALERT_INTERVAL = 5  # seconds
+
+# File to store suspicious packets
+SUSPICIOUS_FILE = "suspicious_packets.pcap"
 
 def process_packet(pkt):
     if IP in pkt:
 
-        # ❌ Ignore local traffic (optional but useful)
+        # Ignore local traffic (optional)
         if pkt[IP].src.startswith("192.168"):
             return
 
@@ -40,14 +43,26 @@ def process_packet(pkt):
 
         prediction = model.predict(features)
 
-        # 🔥 Smart alert control
+        # Smart alert control
         if prediction[0] == -1:
             ip = pkt[IP].src
             current_time = time.time()
 
             if current_time - last_alert_time[ip] > ALERT_INTERVAL:
-                print(f"🚨 ALERT: Suspicious packet from {ip}")
+
+                # Protocol detection (Wireshark-like)
+                proto = "OTHER"
+                if TCP in pkt:
+                    proto = "TCP"
+                elif UDP in pkt:
+                    proto = "UDP"
+
+                print(f"🚨 ALERT: {ip} | Protocol: {proto} | Size: {length}")
+
                 last_alert_time[ip] = current_time
+
+                # Save suspicious packet
+                wrpcap(SUSPICIOUS_FILE, pkt, append=True)
 
 # Start sniffing
 sniff(prn=process_packet, store=False)
