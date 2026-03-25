@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network IDS Dashboard</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+        }
+
+        h1 { color: #38bdf8; }
+
+        #alerts {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #alerts li {
+            margin: 5px 0;
+            padding: 6px;
+            background: #1e293b;
+            border-radius: 5px;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(-10px);}
+            to {opacity: 1;}
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🚀 Network IDS Dashboard</h1>
+<h2>DYNAMIC VERSION 🔥</h2>
+
+<h3>Total Alerts: <span id="count">0</span></h3>
+
+<h3>🚨 Live Alerts</h3>
+<ul id="alerts"></ul>
+
+<h3>🌍 Attack Map</h3>
+<div id="map" style="height: 300px;"></div>
+
+<h3>📊 Protocol Analysis</h3>
+<canvas id="chart"></canvas>
+
+<script>
+
+// 🌍 MAP SETUP
+var map = L.map('map').setView([20, 78], 3);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+// 🔥 GLOBAL STATE
+let lastCount = 0;
+let markers = [];
+let chart;
+let protocolCounts = {};
+
+// 🚀 MAIN FUNCTION
+async function loadData() {
+    const res = await fetch("/alerts");
+    const data = await res.json();
+
+    // ✅ COUNT
+    document.getElementById("count").innerText = data.length;
+
+    const list = document.getElementById("alerts");
+
+    // ✅ ONLY NEW ALERTS
+    if (data.length > lastCount) {
+
+        let newAlerts = data.slice(lastCount);
+
+        newAlerts.forEach(alert => {
+
+            // ALERT UI
+            let li = document.createElement("li");
+            li.innerText = `🚨 ${alert.attack} | ${alert.ip} | ${alert.protocol}`;
+            list.prepend(li);
+
+            // LIMIT LIST SIZE
+            if (list.children.length > 15) {
+                list.removeChild(list.lastChild);
+            }
+
+            // UPDATE COUNTS
+            protocolCounts[alert.protocol] = (protocolCounts[alert.protocol] || 0) + 1;
+
+            // MAP MARKER
+            if (alert.lat && alert.lon) {
+                let marker = L.marker([alert.lat, alert.lon])
+                    .addTo(map)
+                    .bindPopup(alert.ip + " (" + alert.country + ")");
+                markers.push(marker);
+            }
+        });
+
+        lastCount = data.length;
+    }
+
+    // LIMIT MARKERS
+    if (markers.length > 20) {
+        let old = markers.shift();
+        map.removeLayer(old);
+    }
+
+    // 📊 CHART UPDATE
+    if (!chart) {
+        chart = new Chart(document.getElementById("chart"), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(protocolCounts),
+                datasets: [{
+                    label: 'Protocol Count',
+                    data: Object.values(protocolCounts)
+                }]
+            }
+        });
+    } else {
+        chart.data.labels = Object.keys(protocolCounts);
+        chart.data.datasets[0].data = Object.values(protocolCounts);
+        chart.update();
+    }
+}
+
+// 🔁 RUN
+setInterval(loadData, 2000);
+
+</script>
+
+</body>
+</html>

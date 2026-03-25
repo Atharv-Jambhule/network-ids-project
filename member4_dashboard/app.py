@@ -1,37 +1,39 @@
-from flask import Flask, jsonify, render_template
-import pandas as pd
+from flask import Flask, jsonify, render_template, request
+import time
 
 app = Flask(__name__)
 
+# GLOBAL ALERT STORAGE
+alerts = []
+
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("dashboard.html")
 
+# GET alerts (for dashboard)
 @app.route("/alerts")
-def alerts():
-    # Placeholder data - replace with actual alert data
-    alert_data = [
-        {"attack": "DDoS", "ip": "192.168.1.100", "protocol": "TCP", "lat": 20.123, "lon": 78.456, "country": "India"},
-        {"attack": "Port Scan", "ip": "192.168.1.101", "protocol": "UDP", "lat": 30.123, "lon": 80.456, "country": "India"}
-    ]
-    return jsonify(alert_data)
+def get_alerts():
+    return jsonify(alerts)
 
-@app.route("/stats")
-def stats():
-    # Placeholder data - replace with actual statistics
-    stats_data = {
-        "total_alerts": 150,
-        "ddos_attacks": 50,
-        "port_scans": 30,
-        "malware": 20,
-        "other": 50
+# POST alert (from IDS)
+@app.route("/add_alert", methods=["POST"])
+def receive_alert():
+    data = request.json
+
+    alert = {
+        "ip": data["ip"],
+        "protocol": data["protocol"],
+        "length": data["length"],
+        "attack": data["attack"],
+        "time": time.strftime("%H:%M:%S"),
+        "lat": 20 + (len(alerts) % 10),
+        "lon": 78 + (len(alerts) % 10),
+        "country": "India"
     }
-    return jsonify(stats_data)
-def home():
-    return render_template("index.html")
 
+    alerts.append(alert)
+
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-    

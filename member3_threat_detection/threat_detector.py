@@ -1,6 +1,7 @@
 import joblib
 import pandas as pd
 import time
+import requests
 from collections import defaultdict
 from scapy.all import sniff, IP, TCP, UDP, wrpcap
 
@@ -43,23 +44,36 @@ def process_packet(pkt):
 
         prediction = model.predict(features)
 
-        # Smart alert control
+        # If anomaly detected
         if prediction[0] == -1:
             ip = pkt[IP].src
             current_time = time.time()
 
             if current_time - last_alert_time[ip] > ALERT_INTERVAL:
 
-                # Protocol detection (Wireshark-like)
+                # Protocol detection
                 proto = "OTHER"
                 if TCP in pkt:
                     proto = "TCP"
                 elif UDP in pkt:
                     proto = "UDP"
 
+                attack = "Anomaly"
+
                 print(f"🚨 ALERT: {ip} | Protocol: {proto} | Size: {length}")
 
                 last_alert_time[ip] = current_time
+
+                # ✅ SEND TO FLASK (IMPORTANT)
+                try:
+                    requests.post("http://127.0.0.1:5000/add_alert", json={
+                        "ip": ip,
+                        "protocol": proto,
+                        "length": length,
+                        "attack": attack
+                    })
+                except:
+                    print("⚠️ Flask server not running")
 
                 # Save suspicious packet
                 wrpcap(SUSPICIOUS_FILE, pkt, append=True)
