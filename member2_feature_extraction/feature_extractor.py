@@ -29,4 +29,4 @@ for pkt in packets:
 df = pd.DataFrame(data)
 df.to_csv("traffic_dataset.csv", index=False)
 
-print("✅ Updated dataset created")
+print(" Updated dataset created")

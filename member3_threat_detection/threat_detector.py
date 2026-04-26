@@ -6,8 +6,12 @@ from collections import defaultdict
 from scapy.all import sniff, IP, TCP, UDP, wrpcap
 
 # Load trained model
-model = joblib.load("models/anomaly_model.pkl")
+import os
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(BASE_DIR, "models", "anomaly_model.pkl")
+
+model = joblib.load(MODEL_PATH)
 print("🚀 Real-time IDS started...")
 
 # Alert control
