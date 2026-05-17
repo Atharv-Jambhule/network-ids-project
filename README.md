@@ -1,4 +1,3 @@
-````md
 # 🛡️ Intelligent Network Intrusion Detection System
 
 An advanced real-time Network Intrusion Detection System (IDS) developed using Machine Learning, Scapy, Flask, and Wireshark integration. The system captures live network traffic, identifies suspicious activities using anomaly detection techniques, and visualizes threats through an interactive dashboard.
@@ -63,7 +62,7 @@ Real-Time Threat Detection
 Flask Dashboard
        ↓
 Wireshark Packet Analysis
-````
+```
 
 ---
 
@@ -154,30 +153,27 @@ ping google.com
 
 # 📊 Dashboard Features
 
-* Live anomaly alerts
-* Dynamic alert counter
-* Real-time protocol analysis chart
-* Geo-location attack visualization
-* Continuous updates without refresh
+- Live anomaly alerts
+- Dynamic alert counter
+- Real-time protocol analysis chart
+- Geo-location attack visualization
+- Continuous updates without refresh
 
 ---
 
 # 🧠 Machine Learning Model
 
 ### Algorithm Used
-
 Isolation Forest
 
 ### Features Used
-
-* Packet Length
-* Source Port
-* Destination Port
+- Packet Length
+- Source Port
+- Destination Port
 
 ### Prediction Output
-
-* Normal Traffic
-* Suspicious Traffic (Anomaly)
+- Normal Traffic
+- Suspicious Traffic (Anomaly)
 
 ---
 
@@ -201,22 +197,21 @@ These packets can be analyzed in Wireshark for deep packet-level inspection.
 
 # 🎯 Real-World Applications
 
-* Enterprise Network Security
-* Cloud Infrastructure Monitoring
-* SOC (Security Operations Center)
-* Banking & Financial Security
-* IoT Security Monitoring
-* Campus Network Monitoring
+- Enterprise Network Security
+- Cloud Infrastructure Monitoring
+- SOC (Security Operations Center)
+- Banking & Financial Security
+- IoT Security Monitoring
+- Campus Network Monitoring
 
 ---
 
 # 🔮 Future Enhancements
 
-* Deep Learning-based Detection
-* Attack Classification
-* Automated Threat Response
-* Cloud Deployment
+- Deep Learning-based Detection
+- Attack Classification
+- Automated Threat Response
+- Cloud Deployment
+- Advanced Security Analytics
 
 ---
-* Advanced Security Analytics
-
